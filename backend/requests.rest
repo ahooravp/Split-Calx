@@ -1,0 +1,45 @@
+### Register Alice
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+    "username": "Alice",
+    "password": "password123"
+}
+
+### Register Bob
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+    "username": "Bob",
+    "password": "password123"
+}
+
+### 1. Create a Trip
+POST http://localhost:3000/api/trips
+Content-Type: application/json
+
+{
+    "name": "Miami 2026"
+}
+
+### 2. Add an Expense (Alice paid $90 for Dinner. She and Bob split it)
+# Note: Assuming Alice is user_id 1, Bob is user_id 2, and the trip is trip_id 1
+POST http://localhost:3000/api/expenses
+Content-Type: application/json
+
+{
+    "trip_id": 1,
+    "payer_id": 1,
+    "description": "Miami Welcome Dinner",
+    "total_amount": 90.00,
+    "splits": [
+        { "user_id": 1, "amount": 45.00 },
+        { "user_id": 2, "amount": 45.00 }
+    ]
+}
+
+
+###Calculate minimum cash flow)
+GET http://localhost:3000/api/trips/1/settle

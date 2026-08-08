@@ -1,0 +1,20 @@
+{
+  "sqltools.connections": [
+    {
+      "pgOptions": {
+        "ssl": {
+          "rejectUnauthorized": true
+        }
+      },
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "ep-delicate-mode-audg80pt-pooler.c-10.us-east-1.aws.neon.tech",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "Debt Simplifier",
+      "username": "neondb_owner",
+      "database": "neondb",
+      "password": "npg_qx6hDKEQUv3S"
+    }
+  ]
+}
