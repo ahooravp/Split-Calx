@@ -8,6 +8,7 @@ import InvitePage from './pages/InvitePage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import Header from './components/Header';
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser } = useAppContext();
@@ -19,6 +20,7 @@ export default function App() {
     <AppProvider>
       <div className="bg-slate-50 text-slate-800 font-sans min-h-screen">
         <Router>
+          <Header />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />

@@ -43,7 +43,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="relative h-[calc(100vh-65px)] bg-slate-50 flex items-center  justify-center p-4">
       
       {/* Bulletproof Fixed Viewport Canvas */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">

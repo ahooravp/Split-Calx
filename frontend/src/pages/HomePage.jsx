@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-slate-50 relative overflow-hidden flex items-center justify-center p-6 lg:p-12">
+    <div className="h-[calc(100vh-65px)] bg-slate-50 relative overflow-hidden px-6 lg:px-12 pt-16 pb-16">
 
       {/* Abstract Background Blobs */}
       <div className="absolute top-[-10%] left-[-5%] w-120 md:w-160 h-120 md:h-160 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
