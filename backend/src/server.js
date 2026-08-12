@@ -19,11 +19,11 @@ app.use('/auth', authRoutes);
 // Any request starting with /api goes to appRoutes
 app.use('/api',verifyToken, appRoutes);
 
-// Route: GET /
-// Purpose: API Health Check
-app.get('/', (req, res) => {
-    res.json({ message: "Debt Simplifier API is running." });
-});
+// Route: Get /
+// Purpose: SERVE THE FRONTEND
+app.get('/', async (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'))
+})
 
 // ==========================================
 // START SERVER

@@ -57,13 +57,80 @@ router.get('/trips/:trip_id', async (req, res) => {
     }
 });
 
+// ==========================================
+// ROUTE: DELETE /api/trips/:trip_id
+// PURPOSE: Permanently delete a trip (OWNERS ONLY)
+// ==========================================
+router.delete('/trips/:trip_id', async (req, res) => {
+    const client = await pool.connect();
+    
+    try {
+        const { trip_id } = req.params;
+        const loggedInUserId = req.user.id;
+
+        // 1. STRICT GATEKEEPER: Fetch the trip to check ownership
+        const authCheck = await client.query(
+            'SELECT created_by FROM trips WHERE id = $1', 
+            [trip_id]
+        );
+        
+        // If the trip doesn't exist, return a 404
+        if (authCheck.rows.length === 0) {
+            client.release();
+            return res.status(404).json({ error: "Trip not found." });
+        }
+
+        // If the requester is not the creator, return a 403
+        if (authCheck.rows[0].created_by !== loggedInUserId) {
+            client.release();
+            return res.status(403).json({ error: "Access denied. Only the trip creator can delete this trip." });
+        }
+
+        // 2. START HEAVY DELETION TRANSACTION
+        await client.query('BEGIN');
+
+        await client.query(`
+            DELETE FROM expense_splits 
+            WHERE expense_id IN (
+                SELECT id FROM expenses WHERE trip_id = $1
+            );
+        `, [trip_id]);
+
+        await client.query(
+            'DELETE FROM expenses WHERE trip_id = $1;', 
+            [trip_id]
+        );
+
+        await client.query(
+            'DELETE FROM trip_members WHERE trip_id = $1;', 
+            [trip_id]
+        );
+
+        await client.query(
+            'DELETE FROM trips WHERE id = $1;', 
+            [trip_id]
+        );
+
+        // 3. COMMIT EXECUTIONS
+        await client.query('COMMIT');
+        res.json({ message: "Trip and all associated data successfully deleted." });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error("Error deleting trip:", error);
+        res.status(500).json({ error: "Failed to delete trip. Please try again." });
+    } finally {
+        if (client) client.release();
+    }
+});
+
 
 // ==========================================
 // TRIP WRITE OPERATIONS
 // ==========================================
 
 // Route: POST /api/trips
-// Purpose: Create a new trip and add the creator as the first member
+// Purpose: Create a new trip and assign the creator as the owner
 router.post('/trips', async (req, res) => {
     const client = await pool.connect();
     try {
@@ -72,12 +139,14 @@ router.post('/trips', async (req, res) => {
 
         await client.query('BEGIN');
 
+        // Insert the loggedInUserId into the created_by column
         const tripResult = await client.query(
-            `INSERT INTO trips (name) VALUES ($1) RETURNING *;`,
-            [name]
+            `INSERT INTO trips (name, created_by) VALUES ($1, $2) RETURNING *;`,
+            [name, loggedInUserId]
         );
         const newTrip = tripResult.rows[0];
 
+        // The creator is still added to the guest list so they show up in expense splits
         await client.query(
             `INSERT INTO trip_members (trip_id, user_id) VALUES ($1, $2);`,
             [newTrip.id, loggedInUserId] 

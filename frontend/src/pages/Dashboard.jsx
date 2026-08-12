@@ -1,14 +1,16 @@
 // src/pages/Dashboard.jsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 
 export default function Dashboard() {
-  const { currentUser, token, clearSession, showToast } = useAppContext();
+  const { currentUser, token, showToast } = useAppContext();
   const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [newTripName, setNewTripName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [tripToDelete, setTripToDelete] = useState(null);
+  const dialogRef = useRef(null);
 
   const fetchTrips = useCallback(async () => {
     try {
@@ -57,9 +59,49 @@ export default function Dashboard() {
     }
   };
 
-  const handleLogout = () => {
-    clearSession();
-    navigate('/');
+
+// 1. Triggers the custom modal instantly
+  const confirmDelete = (tripId, e) => {
+    e.stopPropagation(); 
+    setTripToDelete(tripId); 
+    
+    // We use a micro-timeout to let React render the dialog first before commanding it to open
+    setTimeout(() => {
+      if (dialogRef.current) dialogRef.current.showModal();
+    }, 0);
+  };
+
+  // 2. Keeps React state clean when canceling or pressing ESC
+  const cancelDelete = () => {
+    if (dialogRef.current) dialogRef.current.close();
+    setTripToDelete(null);
+  };
+
+  // 3. Executes the deletion
+  const executeDelete = async () => {
+    if (!tripToDelete) return;
+    const idToKill = tripToDelete;
+    
+    cancelDelete(); // Snaps the modal shut instantly
+
+    try {
+      const res = await fetch(`/api/trips/${idToKill}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        showToast('Trip deleted successfully!');
+        fetchTrips(); 
+      } else {
+        showToast(data.error, true);
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      showToast('Server error while deleting', true);
+    }
   };
 
   return (
@@ -79,12 +121,7 @@ export default function Dashboard() {
             </div>
             <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">Dashboard</h2>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-slate-700 bg-white border border-slate-200 hover:text-red-600 hover:border-red-200 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 shadow-xs cursor-pointer self-start sm:self-auto"
-          >
-            Logout
-          </button>
+
         </div>
       </div>
 
@@ -138,7 +175,7 @@ export default function Dashboard() {
                 <p className="text-slate-400 text-sm font-medium">Create your first trip to get started.</p>
               </div>
             ) : (
-              <ul className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar pb-2">
+              <ul className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar pb-2">
                 {trips.map((trip) => (
                   <li
                     key={trip.id}
@@ -148,7 +185,25 @@ export default function Dashboard() {
                     <div className="flex items-center gap-4">
                       <span className="font-bold text-slate-700 text-lg group-hover:text-indigo-700 transition-colors">{trip.name}</span>
                     </div>
-                    <span className="text-slate-300 group-hover:text-indigo-500 text-xl transition-all duration-200 transform group-hover:translate-x-1">&rarr;</span>
+
+                    {/* Right side container for actions */}
+                    <div className="flex items-center">
+
+                      {/* The Delete Bin (Reveals on Hover) */}
+                      <button
+                        onClick={(e) => confirmDelete(trip.id, e)} // Updated this line
+                        onTouchStart={() => { }}
+                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 active:bg-red-100 active:text-red-600 active:scale-90 rounded-xl transition-all duration-75 opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer mr-1"
+                        title="Delete Trip"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+
+                      {/* Existing Navigation Arrow */}
+                      <span className="text-slate-300 group-hover:text-indigo-500 text-xl transition-all duration-200 transform group-hover:translate-x-1">&rarr;</span>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -157,6 +212,42 @@ export default function Dashboard() {
 
         </div>
       </div>
+      {/* Bulletproof Native HTML5 Dialog */}
+      <dialog 
+        ref={dialogRef}
+        onCancel={cancelDelete} 
+        className="bg-transparent p-0 m-auto backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm open:animate-[pure-fade_150ms_ease-out_forwards] backdrop:animate-[pure-fade_150ms_ease-out_forwards]"
+      >
+        <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl">
+          
+          <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-2xl mb-6 mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          
+          <h3 className="text-2xl font-extrabold text-center text-slate-900 mb-2">Delete this trip?</h3>
+          <p className="text-center text-slate-500 mb-8 font-medium text-sm leading-relaxed">
+            This action cannot be undone. All expenses and exact debt calculations will be permanently lost.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button 
+              onClick={cancelDelete} 
+              className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={executeDelete} 
+              className="flex-1 py-3.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-[0_8px_30px_rgb(220,38,38,0.3)] hover:-translate-y-0.5 transition-all cursor-pointer"
+            >
+              Delete Trip
+            </button>
+          </div>
+
+        </div>
+      </dialog>
     </div>
   );
 }

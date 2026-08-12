@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
-.fade-enter {
-  opacity: 0;
-  transform: translateY(10px);
-}
+
 .fade-enter-active {
   animation: fade-in 0.3s ease-out forwards;
+}
+
+.modal-fade-active {
+  animation: pure-fade 150ms ease-out forwards;
 }
 
 @keyframes fade-in {
@@ -17,6 +18,11 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes pure-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Custom scrollbar for expenses to keep it looking premium */

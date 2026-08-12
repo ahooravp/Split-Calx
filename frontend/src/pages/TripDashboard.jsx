@@ -6,7 +6,7 @@ import { useAppContext } from '../contexts/AppContext';
 export default function TripDashboard() {
   const { tripId } = useParams();
   const navigate = useNavigate();
-  const { token, currentUser, showToast, clearSession } = useAppContext();
+  const { token, currentUser, showToast } = useAppContext();
   const [activeAction, setActiveAction] = useState(null);
 
   const [trip, setTrip] = useState({ name: 'Loading...', share_token: '' });
@@ -206,12 +206,6 @@ export default function TripDashboard() {
                 <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">{trip.name}</h2>
               </div>
             </div>
-            <button
-              onClick={() => { clearSession(); navigate('/'); }}
-              className="text-slate-700 bg-white border border-slate-200 hover:text-red-600 hover:border-red-200 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 shadow-xs cursor-pointer self-start sm:self-auto"
-            >
-              Logout
-            </button>
           </div>
         </div>
 
