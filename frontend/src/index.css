@@ -36,3 +36,14 @@
   background-color: #e5e7eb;
   border-radius: 20px;
 }
+
+
+ body {
+  /* Prevents the off-screen blobs from expanding the viewport */
+  overflow-x: hidden; 
+  /* Ensures smooth vertical scrolling */
+  /* Prevents pull-to-refresh empty space on mobile */
+  overscroll-behavior-x: none; 
+}
+
+

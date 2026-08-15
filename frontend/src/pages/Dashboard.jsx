@@ -105,7 +105,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 relative overflow-hidden fade-enter-active">
+    <div className="min-h-[calc(100vh-65px)] bg-slate-50 relative flex flex-col overflow-hidden">
 
       {/* Scroll-Mapped Ambient Journey */}
       <div className="absolute top-[-10%] left-[-5%] w-[30rem] md:w-[40rem] h-[30rem] md:h-[40rem] bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 pointer-events-none"></div>
@@ -160,10 +160,10 @@ export default function Dashboard() {
           </div>
 
           <div className="md:col-span-7 bg-white/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-[0_20px_50px_rgb(0,0,0,0.04)] border border-white/60">
-            <h3 className="font-bold text-xl text-slate-900 mb-6">Recent Trips</h3>
+            <h3 className="font-bold text-xl text-slate-900 mb-5">Recent Trips</h3>
 
             {trips.length === 0 ? (
-              <div className="flex flex-col items-center justify-center text-center py-11 bg-indigo-50/30 rounded-2xl border border-dashed border-indigo-200">
+              <div className="flex flex-col items-center justify-center text-center py-12 bg-indigo-50/30 rounded-2xl border border-dashed border-indigo-200">
                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="currentcolor" className='w-12 h-12 text-indigo-400 mb-1' version="1.1" id="Layer_1" viewBox="0 0 268.321 268.321" xml:space="preserve">
                   <g>
                     <g>

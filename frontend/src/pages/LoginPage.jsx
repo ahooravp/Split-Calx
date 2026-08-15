@@ -46,7 +46,7 @@ export default function LoginPage() {
       
       {/* Bulletproof Fixed Viewport Canvas */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[30rem] md:w-[40rem] h-[30rem] md:h-[40rem] bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[30rem] md:w-[40rem] h-[30rem] md:h-[40rem] bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[30rem] md:w-[40rem] h-[30rem] md:h-[40rem] bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
       </div>
 
