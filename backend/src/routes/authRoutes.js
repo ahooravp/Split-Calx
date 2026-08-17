@@ -73,6 +73,35 @@ router.post('/login', async (req, res) => {
     }
 });
 
+
+// Route: GET /auth/invite/:token
+// Purpose: Fetch basic public info for an invite screen (Unprotected)
+router.get('/invite/:token', async (req, res) => {
+    try {
+        const { token } = req.params;
+        const tripResult = await pool.query('SELECT id, name FROM trips WHERE share_token = $1', [token]);
+        const trip = tripResult.rows[0];
+
+        if (!trip) return res.status(404).json({ error: "Invalid or expired invite link." });
+
+        const membersResult = await pool.query(`
+            SELECT u.id, u.name, u.email 
+            FROM users u
+            JOIN trip_members tm ON u.id = tm.user_id
+            WHERE tm.trip_id = $1
+            ORDER BY u.id ASC; 
+        `, [trip.id]);
+
+        const members = membersResult.rows;
+        const inviter = members.length > 0 ? members[0].name : "A friend";
+
+        res.json({ trip, members, inviter });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to load invite link" });
+    }
+});
+
 // Route: POST /auth/claim
 router.post('/claim', async (req, res) => {
     try {
