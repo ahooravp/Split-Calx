@@ -25,18 +25,27 @@
   to { opacity: 1; }
 }
 
-/* Custom scrollbar for expenses to keep it looking premium */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #e5e7eb;
-  border-radius: 20px;
+/* 1. Main Window: Theme recognition, colors, and default (thick) width */
+html {
+  color-scheme: light;
+  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-width: auto; /* Keeps the OS default thickness */
 }
 
+html.dark {
+  color-scheme: dark;
+  scrollbar-color: #334155 transparent;
+}
+
+/* 2. Internal App Lists: Thin width, same responsive colors */
+.custom-scrollbar {
+  scrollbar-width: thin; /* Forces the sleek profile inside your app */
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.dark .custom-scrollbar {
+  scrollbar-color: #334155 transparent;
+}
 
  body {
   /* Prevents the off-screen blobs from expanding the viewport */
@@ -45,5 +54,7 @@
   /* Prevents pull-to-refresh empty space on mobile */
   overscroll-behavior-x: none; 
 }
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 
