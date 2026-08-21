@@ -1,5 +1,5 @@
 // src/pages/TripDashboard.jsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 
@@ -24,6 +24,10 @@ export default function TripDashboard() {
   const [expenseAmount, setExpenseAmount] = useState('');
   const [payerId, setPayerId] = useState('');
   const [selectedSplits, setSelectedSplits] = useState([]);
+
+  // --- NEW: Delete Expense State & Ref ---
+  const [expenseToDelete, setExpenseToDelete] = useState(null);
+  const expenseDialogRef = useRef(null);
 
   const fetchTripDetails = useCallback(async () => {
     try {
@@ -75,15 +79,15 @@ export default function TripDashboard() {
     }
   }, [tripId, token]);
 
-useEffect(() => {
+  useEffect(() => {
     const initializeDashboard = async () => {
-      setIsInitializing(true); // Lock the UI
+      setIsInitializing(true);
       await Promise.all([
         fetchTripDetails(),
         fetchMembers(),
         fetchExpenses()
       ]);
-      setIsInitializing(false); // Unlock the UI and swap skeletons for data
+      setIsInitializing(false);
     };
     initializeDashboard();
   }, [fetchTripDetails, fetchMembers, fetchExpenses]);
@@ -126,8 +130,13 @@ useEffect(() => {
 
   const handleAddExpense = async (e) => {
     e.preventDefault();
-    setActiveAction('ADD_EXPENSE');
     if (selectedSplits.length === 0) return showToast('Select at least one person.', true);
+    
+    if (parseFloat(expenseAmount) <= 0) {
+      return showToast('Expense amount cannot be zero.', true);
+    }
+    
+    setActiveAction('ADD_EXPENSE');
 
     const amount = parseFloat(expenseAmount);
     const totalCents = Math.round(amount * 100);
@@ -179,7 +188,49 @@ useEffect(() => {
     setSelectedSplits(prev => prev.includes(id) ? prev.filter(sId => sId !== id) : [...prev, id]);
   };
 
-return (
+  // --- NEW: Delete Expense Methods ---
+  const confirmDeleteExpense = (expId, e) => {
+    e.stopPropagation();
+    setExpenseToDelete(expId);
+    setTimeout(() => {
+      if (expenseDialogRef.current) expenseDialogRef.current.showModal();
+    }, 0);
+  };
+
+  const cancelDeleteExpense = () => {
+    if (expenseDialogRef.current) expenseDialogRef.current.close();
+    setExpenseToDelete(null);
+  };
+
+  const executeDeleteExpense = async () => {
+    if (!expenseToDelete) return;
+    const idToKill = expenseToDelete;
+
+    cancelDeleteExpense();
+
+    try {
+      const res = await fetch(`/api/expenses/${idToKill}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showToast('Expense deleted successfully!');
+        fetchExpenses();
+        // Instantly recalculate the math if the ledger is open
+        if (debts) handleCalculate();
+      } else {
+        showToast(data.error, true);
+      }
+    } catch (err) {
+      console.error('Delete expense error:', err);
+      showToast('Server error while deleting', true);
+    }
+  };
+
+  return (
     <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 transition-[background-color,border-color,box-shadow] duration-300 ease-in-out pt-16">
 
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -204,7 +255,6 @@ return (
                   <span className="flex h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse"></span>
                   Trip Dashboard
                 </div>
-                {/* Dynamically swap the exact font dimensions for a skeleton block */}
                 {isInitializing ? (
                   <div className="h-10 sm:h-12 w-48 sm:w-60 bg-slate-300/50 dark:bg-slate-800 rounded-xl animate-pulse "></div>
                 ) : (
@@ -220,7 +270,6 @@ return (
 
             <div className="space-y-8">
               <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-[0_20px_50px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-white/60 dark:border-slate-700/50 transition-[background-color,border-color,box-shadow] duration-300 ease-in-out">
-                {/* Header stripped of transition-colors, isolated to child nodes */}
                 <h3 className="font-bold mb-5 flex items-center gap-2 text-lg">
                   <div className="text-indigo-600 dark:text-indigo-400 flex items-center justify-center transition-colors duration-300 ease-in-out">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5" /></svg>
@@ -228,28 +277,25 @@ return (
                   <span className="text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">Guest List</span>
                 </h3>
 
-                
-                
                 <ul className="mb-6 flex flex-wrap gap-2.5">
                   {isInitializing ? (
-                    // Guest Pill Skeletons
                     [1, 2, 3].map((i) => (
                       <li key={`skel-guest-${i}`} className="h-[37px] w-22 bg-indigo-100/50 dark:bg-indigo-900/30 border border-indigo-100/50 dark:border-indigo-800/50 rounded-xl animate-pulse"></li>
                     ))
-                  ) : 
-                  members.map((m, index) => (
-                    <li 
-                      key={m.id} 
-                      className="flex items-center gap-1.5 bg-indigo-50/50 border border-indigo-100 text-indigo-700 text-sm px-4 py-2 rounded-xl font-bold shadow-xs dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300 transition-colors duration-300 ease-in-out"
-                    >
-                      {index === 0 && (
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-amber-400 -ml-0.5">
-                          <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                      {m.name}
-                    </li>
-                  ))}
+                  ) :
+                    members.map((m, index) => (
+                      <li
+                        key={m.id}
+                        className="flex items-center gap-1.5 bg-indigo-50/50 border border-indigo-100 text-indigo-700 text-sm px-4 py-2 rounded-xl font-bold shadow-xs dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300 transition-colors duration-300 ease-in-out"
+                      >
+                        {index === 0 && (
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-amber-400 -ml-0.5">
+                            <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                        {m.name}
+                      </li>
+                    ))}
                 </ul>
 
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-6 mt-2 transition-[border-color] duration-300 ease-in-out">
@@ -258,7 +304,6 @@ return (
                     <button onClick={handleCopyLink} className="text-indigo-600 dark:text-indigo-400 text-sm font-bold flex items-center gap-1.5 cursor-pointer group transition-colors duration-300 ease-in-out">
                       {isCopied ? (
                         <>
-                          {/* Inner SVGs stripped of redundant transitions */}
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                           Copied!
                         </>
@@ -305,7 +350,7 @@ return (
               <form onSubmit={handleAddExpense} className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-[0_20px_50px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-white/60 dark:border-slate-700/50 transition-[background-color,border-color,box-shadow] duration-300 ease-in-out">
                 <h3 className="font-bold text-xl mb-6 flex items-center gap-2">
                   <div className="text-emerald-600 dark:text-emerald-400 flex items-center justify-center transition-colors duration-300 ease-in-out">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" id="receipt-add" data-name="Flat Line" className="icon flat-line w-6 h-6"><g id="SVGRepo_bgCarrier" strokeWidth="0" /><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" /><g id="SVGRepo_iconCarrier"><path id="secondary" d="M21,4V18.5a2.5,2.5,0,0,1-5,0V16H5V4A1,1,0,0,1,6,3H20A1,1,0,0,1,21,4Z" fill="none" strokeWidth={2} /><path id="primary" d="M13,7v5m2.5-2.5h-5M21,4V18.5a2.5,2.5,0,0,1-5,0V16H5V4A1,1,0,0,1,6,3H20A1,1,0,0,1,21,4ZM16,18.5V16H3v2.5A2.5,2.5,0,0,0,5.5,21h13A2.5,2.5,0,0,1,16,18.5Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} /></g></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" id="receipt-add" data-name="Flat Line" className="icon flat-line w-6 h-6"><g id="SVGRepo_bgCarrier" strokeWidth="0" /><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" /><g id="SVGRepo_iconCarrier"><path id="secondary" d="M21,4V18.5a2.5,2.5,0,0,1-5,0V16H5V4A1,1,0,0,1,6,3H20A1,1,0,0,1,21,4Z" fill="none" strokeWidth={2} /><path id="primary" d="M13,7v5m2.5-2.5h-5M21,4V18.5a2.5,2.5,0,0,1-5,0V16H5V4A1,1,0,0,1,6,3H20A1,1,0,0,1,21,4ZM16,18.5V16H3v2.5A2.5,2.5,0,0,0,5.5,21h13A2.5,2.5,0,0,1,16,18.5Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} /></g></svg>
                   </div>
                   <span className="text-slate-900 dark:text-white transition-colors duration-300 ease-in-out">Add Expense</span>
                 </h3>
@@ -320,18 +365,27 @@ return (
                 <div className="mb-6">
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider transition-colors duration-300 ease-in-out">Details</label>
                   <input type="text" placeholder="What was it for? (e.g., Dinner)" required value={expenseDesc} onChange={e => setExpenseDesc(e.target.value)} className="bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 p-3.5 w-full mb-3 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-emerald-500 font-medium text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-300 ease-in-out" />
-                  
-                  {/* Wrapper locked to bg/border transitions to protect child text transitions */}
+
                   <div className="flex items-center bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-2 focus-within:ring-emerald-500 transition-[background-color,border-color,box-shadow] duration-300 ease-in-out">
                     <span className="pl-4 font-bold text-slate-400 dark:text-slate-500 text-lg transition-colors duration-300 ease-in-out">$</span>
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
                       placeholder="0.00"
                       required
                       value={expenseAmount}
-                      onChange={e => setExpenseAmount(e.target.value)}
-                      className="bg-transparent p-3.5 w-full outline-none text-lg font-bold text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-300 ease-in-out"
+                      onChange={e => {
+                        const val = e.target.value;
+                        // The Hand-off: If they chevron down to 0, clear the input so the styled placeholder takes over
+                        setExpenseAmount(val === '0' ? '' : val);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === '-' || e.key === 'e') {
+                          e.preventDefault();
+                        }
+                      }}
+                      className="bg-transparent p-3.5 w-full outline-none text-lg font-bold text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors duration-300 ease-in-out"
                     />
                   </div>
                 </div>
@@ -371,7 +425,6 @@ return (
                   </button>
                 </div>
 
-                {/* DYNAMIC SCROLLBAR LOCK: Strips the overflow property entirely unless the array physically demands it, mathematically preventing the 2-pass render flash */}
                 <ul className={`space-y-3 custom-scrollbar pr-2 ${debts?.transactions?.length > 5 ? 'max-h-[600px] overflow-y-auto overflow-x-hidden' : ''}`}>
                   {!debts && (
                     <li className="flex flex-col items-center justify-center py-10 bg-indigo-100/20 dark:bg-slate-800/30 rounded-2xl border border-dashed border-indigo-300 dark:border-indigo-900 text-center transition-[background-color,border-color] duration-300 ease-in-out">
@@ -392,7 +445,7 @@ return (
                       <li key={i} className="p-4 sm:p-5 bg-indigo-50/50 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700 rounded-2xl flex justify-between items-center hover:bg-white/80 dark:hover:bg-slate-800 hover:shadow-xs fade-enter-active transition-[background-color,border-color,box-shadow] duration-300 ease-in-out">
                         <div className="flex flex-col">
                           <span>
-                            <strong className="font-extrabold text-indigo-900 dark:text-indigo-300 transition-colors duration-300 ease-in-out">{fromName}</strong> 
+                            <strong className="font-extrabold text-indigo-900 dark:text-indigo-300 transition-colors duration-300 ease-in-out">{fromName}</strong>
                             <span className="text-slate-800 dark:text-slate-200"> must pay </span>
                             <strong className="font-extrabold text-indigo-900 dark:text-indigo-300 transition-colors duration-300 ease-in-out">{toName}</strong>
                           </span>
@@ -414,7 +467,6 @@ return (
 
                 <ul className={`space-y-3 custom-scrollbar pr-2 ${expenses.length > 7 ? 'max-h-[687px] overflow-y-auto overflow-x-hidden' : ''}`}>
                   {isInitializing ? (
-                    // Expense Card Skeletons - Exact Padding and Font Line-Heights
                     [1, 2, 3, 4].map((i) => (
                       <li key={`skel-exp-${i}`} className="p-4 sm:p-5 bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-2xl flex justify-between items-center">
                         <div className="flex flex-col gap-2.5">
@@ -433,12 +485,39 @@ return (
                     </li>
                   )}
                   {expenses.map(exp => (
-                    <li key={exp.id || exp.description} className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700 rounded-2xl flex justify-between items-center fade-enter-active hover:bg-white/80 dark:hover:bg-slate-800 hover:shadow-xs transition-[background-color,border-color,box-shadow] duration-300 ease-in-out">
+                    // --- NEW: Added 'group' class and the delete button logic to the expense list item ---
+                    <li key={exp.id || exp.description} className="p-4 sm:p-5 bg-slate-100/60 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700 rounded-2xl flex justify-between items-center fade-enter-active   hover:shadow-xs transition-[background-color,border-color,box-shadow] duration-300 ease-in-out group">
                       <div className="flex flex-col">
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-base transition-colors duration-300 ease-in-out">{exp.description}</span>
-                        <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1 tracking-wider transition-colors duration-300 ease-in-out">Paid by {exp.payer_name?.toUpperCase()}</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-base transition-colors duration-300 ease-in-out">
+                          {exp.description}
+                        </span>
+                        <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1 tracking-wider transition-colors duration-300 ease-in-out">
+                          Paid by {exp.payer_name?.toUpperCase()} • {new Date(exp.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        </span>
                       </div>
-                      <span className="font-extrabold text-slate-900 dark:text-white text-xl transition-colors duration-300 ease-in-out">${parseFloat(exp.total_amount).toFixed(2)}</span>
+
+                      {/* We added 'relative' to the container so the button can be absolutely positioned on desktop */}
+                      <div className="flex items-center gap-3 relative">
+
+                        {/* We changed transition-colors to transition-all, and added lg:group-hover:-translate-x-10 to slide it left */}
+                        <span className="font-extrabold text-slate-900 dark:text-white text-xl transition-all duration-300 ease-in-out lg:group-hover:-translate-x-10">
+                          ${parseFloat(exp.total_amount).toFixed(2)}
+                        </span>
+
+                        <button
+                          onClick={(e) => confirmDeleteExpense(exp.id, e)}
+                          /* 
+                            We added: lg:absolute lg:right-0 (takes it out of the flow on desktop so the amount sits flush right) 
+                            and lg:pointer-events-none lg:group-hover:pointer-events-auto (prevents accidental clicks when invisible) 
+                          */
+                          className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 active:bg-red-100 dark:active:bg-red-900/50 active:text-red-600 dark:active:text-red-300 active:scale-90 rounded-xl opacity-100 lg:opacity-0 lg:absolute lg:right-0 lg:pointer-events-none lg:group-hover:pointer-events-auto lg:group-hover:opacity-100 cursor-pointer transition-all duration-300 ease-in-out"
+                          title="Delete Expense"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -448,6 +527,44 @@ return (
           </div>
         </div>
       </div>
+
+      {/* --- NEW: The Expense Delete Confirmation Dialog --- */}
+      <dialog
+        ref={expenseDialogRef}
+        onCancel={cancelDeleteExpense}
+        className="bg-transparent p-0 m-auto backdrop:bg-slate-900/60 dark:backdrop:bg-slate-950/80 backdrop:backdrop-blur-sm open:animate-[pure-fade_150ms_ease-out_forwards] backdrop:animate-[pure-fade_150ms_ease-out_forwards]"
+      >
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 dark:border-slate-800 transition-[background-color,border-color,box-shadow] duration-300 ease-in-out">
+
+          <div className="flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-2xl mb-6 mx-auto transition-[background-color] duration-300 ease-in-out">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+
+          <h3 className="text-2xl font-extrabold text-center text-slate-900 dark:text-white mb-2 transition-colors duration-300 ease-in-out">Delete this expense?</h3>
+          <p className="text-center text-slate-500 dark:text-slate-400 mb-8 font-medium text-sm leading-relaxed transition-colors duration-300 ease-in-out">
+            This action cannot be undone. It will be removed from the trip ledger, and all debts will be recalculated.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={cancelDeleteExpense}
+              className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl cursor-pointer transition-all duration-300 ease-in-out"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={executeDeleteExpense}
+              className="flex-1 py-3.5 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white font-bold rounded-xl shadow-[0_8px_30px_rgb(220,38,38,0.3)] hover:-translate-y-0.5 cursor-pointer transition-all duration-300 ease-in-out"
+            >
+              Delete
+            </button>
+          </div>
+
+        </div>
+      </dialog>
+
     </div>
   );
 }

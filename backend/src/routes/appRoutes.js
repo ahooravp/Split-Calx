@@ -124,6 +124,68 @@ router.delete('/trips/:trip_id', async (req, res) => {
     }
 });
 
+// ==========================================
+// ROUTE: DELETE /api/expenses/:expense_id
+// PURPOSE: Permanently delete an expense and its associated splits
+// ==========================================
+router.delete('/expenses/:expense_id', async (req, res) => {
+    const client = await pool.connect();
+    
+    try {
+        const { expense_id } = req.params;
+        const loggedInUserId = req.user.id;
+
+        // 1. Fetch the expense to find out which trip it belongs to
+        const expenseCheck = await client.query(
+            'SELECT trip_id FROM expenses WHERE id = $1', 
+            [expense_id]
+        );
+        
+        if (expenseCheck.rows.length === 0) {
+            client.release();
+            return res.status(404).json({ error: "Expense not found." });
+        }
+        
+        const trip_id = expenseCheck.rows[0].trip_id;
+
+        // 2. GATEKEEPER: Ensure the requester is a member of this trip
+        const authCheck = await client.query(
+            'SELECT 1 FROM trip_members WHERE trip_id = $1 AND user_id = $2', 
+            [trip_id, loggedInUserId]
+        );
+        
+        if (authCheck.rows.length === 0) {
+            client.release();
+            return res.status(403).json({ error: "Access denied. You cannot delete an expense from this trip." });
+        }
+
+        // 3. START HEAVY DELETION TRANSACTION
+        await client.query('BEGIN');
+
+        // Step A: Destroy the child records (the splits)
+        await client.query(
+            'DELETE FROM expense_splits WHERE expense_id = $1;', 
+            [expense_id]
+        );
+
+        // Step B: Destroy the parent record (the expense)
+        await client.query(
+            'DELETE FROM expenses WHERE id = $1;', 
+            [expense_id]
+        );
+
+        await client.query('COMMIT');
+        res.json({ message: "Expense successfully deleted." });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error("Error deleting expense:", error);
+        res.status(500).json({ error: "Failed to delete expense." });
+    } finally {
+        if (client) client.release();
+    }
+});
+
 
 // ==========================================
 // TRIP WRITE OPERATIONS

@@ -177,7 +177,7 @@ const fetchTrips = useCallback(async (isFirstLoad = false) => {
                 {[1, 2, 3].map((i) => (
                   <li key={`skel-${i}`} className="p-4 bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/30 rounded-2xl flex justify-between items-center">
                     <div className="h-7 w-48 sm:w-26 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
-                    <div className="h-3 w-10 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse"></div>
+                    <div className="h-1 w-4 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse"></div>
                   </li>
                 ))}
               </ul>
@@ -211,10 +211,10 @@ const fetchTrips = useCallback(async (isFirstLoad = false) => {
                         onClick={(e) => confirmDelete(trip.id, e)}
                         onTouchStart={() => { }}
                         /* Stripped duration-75 error */
-                        className="p-2 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 active:bg-red-100 dark:active:bg-red-900/50 active:text-red-600 dark:active:text-red-300 active:scale-90 rounded-xl opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer mr-1 transition-all duration-300 ease-in-out"
+                        className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 active:bg-red-100 dark:active:bg-red-900/50 active:text-red-600 dark:active:text-red-300 active:scale-90 rounded-xl opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer mr-1 transition-all duration-300 ease-in-out"
                         title="Delete Trip"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
