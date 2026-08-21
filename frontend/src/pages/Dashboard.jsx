@@ -8,10 +8,12 @@ export default function Dashboard() {
   const [trips, setTrips] = useState([]);
   const [newTripName, setNewTripName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true); 
   const [tripToDelete, setTripToDelete] = useState(null);
   const dialogRef = useRef(null);
 
-  const fetchTrips = useCallback(async () => {
+const fetchTrips = useCallback(async (isFirstLoad = false) => {
+    if (isFirstLoad) setIsInitializing(true);
     try {
       const res = await fetch('/api/trips', {
         headers: { Authorization: `Bearer ${token}` },
@@ -20,8 +22,17 @@ export default function Dashboard() {
       if (res.ok) setTrips(data);
     } catch (err) {
       console.error('Error fetching trips:', err);
+    } finally {
+      if (isFirstLoad) setIsInitializing(false);
     }
   }, [token]);
+
+  useEffect(() => {
+    const loadTrips = async () => {
+      await fetchTrips(true); // <-- Pass true on initial mount
+    };
+    loadTrips();
+  }, [fetchTrips]);
 
   useEffect(() => {
     const loadTrips = async () => {
@@ -157,9 +168,20 @@ export default function Dashboard() {
           </div>
 
           <div className="md:col-span-7 bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-[0_20px_50px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-white/60 dark:border-slate-700/50 transition-[background-color,border-color,box-shadow] duration-300 ease-in-out">
+            {/* The structural shell (title) remains static and visible instantly */}
             <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-5 transition-colors duration-300 ease-in-out">Recent Trips</h3>
 
-            {trips.length === 0 ? (
+            {isInitializing ? (
+              // The Skeletons: Exact dimensional parity with the real list items
+              <ul className="space-y-3 max-h-[350px] overflow-hidden pr-2">
+                {[1, 2, 3].map((i) => (
+                  <li key={`skel-${i}`} className="p-4 bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/30 rounded-2xl flex justify-between items-center">
+                    <div className="h-7 w-48 sm:w-26 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+                    <div className="h-3 w-10 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse"></div>
+                  </li>
+                ))}
+              </ul>
+            ) : trips.length === 0 ? (
               <div className="flex flex-col items-center justify-center text-center py-12 bg-indigo-50/30 dark:bg-slate-800/30 rounded-2xl border border-dashed border-indigo-200 dark:border-slate-700 transition-[background-color,border-color] duration-300 ease-in-out">
                 <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="currentColor" className='w-12 h-12 text-indigo-400 dark:text-indigo-600 mb-1 transition-colors duration-300 ease-in-out' version="1.1" id="Layer_1" viewBox="0 0 268.321 268.321" xmlSpace="preserve">
                   <g>

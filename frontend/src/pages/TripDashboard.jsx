@@ -8,6 +8,7 @@ export default function TripDashboard() {
   const navigate = useNavigate();
   const { token, currentUser, showToast } = useAppContext();
   const [activeAction, setActiveAction] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const [trip, setTrip] = useState({ name: 'Loading...', share_token: '' });
   const [members, setMembers] = useState([]);
@@ -74,13 +75,15 @@ export default function TripDashboard() {
     }
   }, [tripId, token]);
 
-  useEffect(() => {
+useEffect(() => {
     const initializeDashboard = async () => {
+      setIsInitializing(true); // Lock the UI
       await Promise.all([
         fetchTripDetails(),
         fetchMembers(),
         fetchExpenses()
       ]);
+      setIsInitializing(false); // Unlock the UI and swap skeletons for data
     };
     initializeDashboard();
   }, [fetchTripDetails, fetchMembers, fetchExpenses]);
@@ -201,7 +204,12 @@ return (
                   <span className="flex h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse"></span>
                   Trip Dashboard
                 </div>
-                <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight transition-colors duration-300 ease-in-out">{trip.name}</h2>
+                {/* Dynamically swap the exact font dimensions for a skeleton block */}
+                {isInitializing ? (
+                  <div className="h-10 sm:h-12 w-48 sm:w-60 bg-slate-300/50 dark:bg-slate-800 rounded-xl animate-pulse "></div>
+                ) : (
+                  <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight transition-colors duration-300 ease-in-out">{trip.name}</h2>
+                )}
               </div>
             </div>
           </div>
@@ -219,9 +227,17 @@ return (
                   </div>
                   <span className="text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">Guest List</span>
                 </h3>
+
+                
                 
                 <ul className="mb-6 flex flex-wrap gap-2.5">
-                  {members.map((m, index) => (
+                  {isInitializing ? (
+                    // Guest Pill Skeletons
+                    [1, 2, 3].map((i) => (
+                      <li key={`skel-guest-${i}`} className="h-[37px] w-22 bg-indigo-100/50 dark:bg-indigo-900/30 border border-indigo-100/50 dark:border-indigo-800/50 rounded-xl animate-pulse"></li>
+                    ))
+                  ) : 
+                  members.map((m, index) => (
                     <li 
                       key={m.id} 
                       className="flex items-center gap-1.5 bg-indigo-50/50 border border-indigo-100 text-indigo-700 text-sm px-4 py-2 rounded-xl font-bold shadow-xs dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300 transition-colors duration-300 ease-in-out"
@@ -396,9 +412,19 @@ return (
                   <span className="text-slate-900 dark:text-white transition-colors duration-300 ease-in-out">Recent Expenses</span>
                 </h3>
 
-                {/* DYNAMIC SCROLLBAR LOCK: Prevents layout thrashing by only applying overflow physics when the array exceeds 7 items */}
                 <ul className={`space-y-3 custom-scrollbar pr-2 ${expenses.length > 7 ? 'max-h-[687px] overflow-y-auto overflow-x-hidden' : ''}`}>
-                  {expenses.length === 0 && (
+                  {isInitializing ? (
+                    // Expense Card Skeletons - Exact Padding and Font Line-Heights
+                    [1, 2, 3, 4].map((i) => (
+                      <li key={`skel-exp-${i}`} className="p-4 sm:p-5 bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-2xl flex justify-between items-center">
+                        <div className="flex flex-col gap-2.5">
+                          <div className="h-5 w-32 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse"></div>
+                          <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700 rounded-sm animate-pulse"></div>
+                        </div>
+                        <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+                      </li>
+                    ))
+                  ) : expenses.length === 0 && (
                     <li className="flex flex-col items-center justify-center py-10 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center transition-[background-color,border-color] duration-300 ease-in-out">
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3 transition-colors duration-300 ease-in-out" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm4 0a.5.5 0 11-1 0 .5.5 0 011 0zm-4 4a.5.5 0 11-1 0 .5.5 0 011 0zm4 0a.5.5 0 11-1 0 .5.5 0 011 0z" />
