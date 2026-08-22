@@ -8,11 +8,11 @@ export default function Dashboard() {
   const [trips, setTrips] = useState([]);
   const [newTripName, setNewTripName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true); 
+  const [isInitializing, setIsInitializing] = useState(true);
   const [tripToDelete, setTripToDelete] = useState(null);
   const dialogRef = useRef(null);
 
-const fetchTrips = useCallback(async (isFirstLoad = false) => {
+  const fetchTrips = useCallback(async (isFirstLoad = false) => {
     if (isFirstLoad) setIsInitializing(true);
     try {
       const res = await fetch('/api/trips', {
@@ -70,9 +70,9 @@ const fetchTrips = useCallback(async (isFirstLoad = false) => {
   };
 
   const confirmDelete = (tripId, e) => {
-    e.stopPropagation(); 
-    setTripToDelete(tripId); 
-    
+    e.stopPropagation();
+    setTripToDelete(tripId);
+
     setTimeout(() => {
       if (dialogRef.current) dialogRef.current.showModal();
     }, 0);
@@ -86,20 +86,20 @@ const fetchTrips = useCallback(async (isFirstLoad = false) => {
   const executeDelete = async () => {
     if (!tripToDelete) return;
     const idToKill = tripToDelete;
-    
-    cancelDelete(); 
+
+    cancelDelete();
 
     try {
       const res = await fetch(`/api/trips/${idToKill}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const data = await res.json();
-      
+
       if (res.ok) {
         showToast('Trip deleted successfully!');
-        fetchTrips(); 
+        fetchTrips();
       } else {
         showToast(data.error, true);
       }
@@ -154,12 +154,11 @@ const fetchTrips = useCallback(async (isFirstLoad = false) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex justify-center items-center cursor-pointer bg-emerald-500 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold w-full py-4 rounded-xl hover:shadow-sm hover:-translate-y-0.5 disabled:opacity-75 disabled:cursor-not-allowed disabled:transform-none transition-all duration-300 ease-in-out"
+                className="flex justify-center items-center cursor-pointer bg-emerald-500 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white dark:text-slate-200 font-bold w-full py-4 rounded-xl hover:shadow-sm hover:-translate-y-0.5 disabled:opacity-75 disabled:cursor-not-allowed disabled:transform-none transition-all duration-300 ease-in-out"
               >
                 {!isLoading && (
-                  <svg xmlns="http://www.w3.org/2000/svg" className='w-5 h-5 mr-1' viewBox="0 0 24 24" fill="none">
-                    <path d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44772 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44771 13 7 12.5523 7 12C7 11.4477 7.44772 11 8 11H11V8Z" fill="currentColor" />
-                    <path fillRule="evenodd" clipRule="evenodd" d="M23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12ZM3.00683 12C3.00683 16.9668 7.03321 20.9932 12 20.9932C16.9668 20.9932 20.9932 16.9668 20.9932 12C20.9932 7.03321 16.9668 3.00683 12 3.00683C7.03321 3.00683 3.00683 7.03321 3.00683 12Z" fill="currentColor" />
+                  <svg xmlns="http://www.w3.org/2000/svg" className='w-6 h-6 mr-1 ' viewBox="0 0 24 24" fill="none">
+                    <path d="M15 12H12M12 12H9M12 12V9M12 12V15M17 21H7C4.79086 21 3 19.2091 3 17V7C3 4.79086 4.79086 3 7 3H17C19.2091 3 21 4.79086 21 7V17C21 19.2091 19.2091 21 17 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                   </svg>
                 )}
                 {isLoading ? 'Creating...' : 'Create Trip'}
@@ -182,7 +181,7 @@ const fetchTrips = useCallback(async (isFirstLoad = false) => {
                 ))}
               </ul>
             ) : trips.length === 0 ? (
-              <div className="flex flex-col items-center justify-center text-center py-12 bg-indigo-50/30 dark:bg-slate-800/30 rounded-2xl border border-dashed border-indigo-200 dark:border-slate-700 transition-[background-color,border-color] duration-300 ease-in-out">
+              <div className="flex flex-col items-center justify-center text-center py-12 bg-indigo-50/30 dark:bg-slate-800/30 rounded-2xl border border-dashed border-indigo-300 dark:border-indigo-900 transition-[background-color,border-color] duration-300 ease-in-out">
                 <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="currentColor" className='w-12 h-12 text-indigo-400 dark:text-indigo-600 mb-1 transition-colors duration-300 ease-in-out' version="1.1" id="Layer_1" viewBox="0 0 268.321 268.321" xmlSpace="preserve">
                   <g>
                     <g>
@@ -229,35 +228,35 @@ const fetchTrips = useCallback(async (isFirstLoad = false) => {
 
         </div>
       </div>
-      
-      <dialog 
+
+      <dialog
         ref={dialogRef}
-        onCancel={cancelDelete} 
+        onCancel={cancelDelete}
         className="bg-transparent p-0 m-auto backdrop:bg-slate-900/60 dark:backdrop:bg-slate-950/80 backdrop:backdrop-blur-sm open:animate-[pure-fade_150ms_ease-out_forwards] backdrop:animate-[pure-fade_150ms_ease-out_forwards]"
       >
         {/* Isolated transition logic in dialog */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 dark:border-slate-800 transition-[background-color,border-color,box-shadow] duration-300 ease-in-out">
-          
+
           <div className="flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-2xl mb-6 mx-auto transition-[background-color] duration-300 ease-in-out">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          
+
           <h3 className="text-2xl font-extrabold text-center text-slate-900 dark:text-white mb-2 transition-colors duration-300 ease-in-out">Delete this trip?</h3>
           <p className="text-center text-slate-500 dark:text-slate-400 mb-8 font-medium text-sm leading-relaxed transition-colors duration-300 ease-in-out">
             This action cannot be undone. All expenses and exact debt calculations will be permanently lost.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-3">
-            <button 
-              onClick={cancelDelete} 
+            <button
+              onClick={cancelDelete}
               className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl cursor-pointer transition-all duration-300 ease-in-out"
             >
               Cancel
             </button>
-            <button 
-              onClick={executeDelete} 
+            <button
+              onClick={executeDelete}
               className="flex-1 py-3.5 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white font-bold rounded-xl shadow-[0_8px_30px_rgb(220,38,38,0.3)] hover:-translate-y-0.5 cursor-pointer transition-all duration-300 ease-in-out"
             >
               Delete Trip
