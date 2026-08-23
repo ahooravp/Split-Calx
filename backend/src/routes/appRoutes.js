@@ -76,13 +76,11 @@ router.delete('/trips/:trip_id', async (req, res) => {
         
         // If the trip doesn't exist, return a 404
         if (authCheck.rows.length === 0) {
-            client.release();
             return res.status(404).json({ error: "Trip not found." });
         }
 
         // If the requester is not the creator, return a 403
         if (authCheck.rows[0].created_by !== loggedInUserId) {
-            client.release();
             return res.status(403).json({ error: "Access denied. Only the trip creator can delete this trip." });
         }
 
@@ -142,7 +140,6 @@ router.delete('/expenses/:expense_id', async (req, res) => {
         );
         
         if (expenseCheck.rows.length === 0) {
-            client.release();
             return res.status(404).json({ error: "Expense not found." });
         }
         
@@ -155,7 +152,6 @@ router.delete('/expenses/:expense_id', async (req, res) => {
         );
         
         if (authCheck.rows.length === 0) {
-            client.release();
             return res.status(403).json({ error: "Access denied. You cannot delete an expense from this trip." });
         }
 
@@ -292,12 +288,10 @@ router.post('/trips/:trip_id/members', async (req, res) => {
         // Gatekeeper
         const authCheck = await client.query('SELECT 1 FROM trip_members WHERE trip_id = $1 AND user_id = $2', [trip_id, loggedInUserId]);
         if (authCheck.rows.length === 0) {
-            client.release();
             return res.status(403).json({ error: "You cannot add members to a trip you are not part of." });
         }
 
         if (!name) {
-            client.release();
             return res.status(400).json({ error: "A name is required to add a member." });
         }
 
@@ -358,7 +352,6 @@ router.post('/expenses', async (req, res) => {
         // 1. Gatekeeper Check
         const authCheck = await client.query('SELECT 1 FROM trip_members WHERE trip_id = $1 AND user_id = $2', [trip_id, loggedInUserId]);
         if (authCheck.rows.length === 0) {
-            client.release();
             return res.status(403).json({ error: "You cannot add expenses to a trip you are not part of." });
         }
 
@@ -374,7 +367,6 @@ router.post('/expenses', async (req, res) => {
         const validationResult = await client.query(validationQuery, [trip_id, uniqueUserIds]);
         
         if (parseInt(validationResult.rows[0].count) !== uniqueUserIds.length) {
-            client.release();
             return res.status(400).json({ error: "One or more users in this expense do not belong to this trip." });
         }
 

@@ -42,7 +42,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <Link
                 to="/register"
-                className="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgba(79,70,229,0.3)] hover:bg-indigo-700 transition-all duration-300 ease-out"
+                className="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_8px_10px_rgba(79,70,229,0.3)] hover:bg-indigo-700 transition-all duration-300 ease-out"
               >
                 Create an Account
               </Link>
