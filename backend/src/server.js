@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path')
 const verifyToken = require('./middleware/authMiddleware');
 
 // 1. Import our new route files
@@ -20,10 +19,10 @@ app.use('/auth', authRoutes);
 app.use('/api',verifyToken, appRoutes);
 
 // Route: Get /
-// Purpose: SERVE THE FRONTEND
-app.get('/', async (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'))
-})
+// Purpose: API Health Check
+app.get('/', (req, res) => {
+    res.status(200).json({ status: "alive", message: "Debt Simplifier API is running!" });
+});
 
 // ==========================================
 // START SERVER
