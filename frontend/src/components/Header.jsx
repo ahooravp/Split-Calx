@@ -53,7 +53,7 @@ export default function Header() {
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
 
         <Link to="/" className="flex items-center gap-1.5 group cursor-pointer">
-          <img src="../public/split-calx-logo.png" alt="" width={32} height={32} className='hover:scale-110 duration-300' />
+          <img src="/split-calx-logo.png" alt="" width={32} height={32} className='hover:scale-110 duration-300' />
           <span className="font-extrabold text-2xl tracking-tight text-emerald-500 group-hover:translate-x-1 transition-all duration-300">
             Split<span className="text-indigo-600 dark:text-indigo-400 ml-1 transition-colors duration-300">Calx</span>
           </span>
