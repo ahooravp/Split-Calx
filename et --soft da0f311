@@ -1,0 +1,44 @@
+[33me61463d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m fix: Update vercel.json rewrites for backend routing
+[33m52cc93f[m fix: Update vercel.json rewrites to handle assets and correct frontend routing
+[33m5efc306[m fix: Update vercel.json rewrites to include assets path and correct frontend index destination
+[33m5551006[m fix: Update vercel.json rewrites for backend routing and remove unnecessary service definitions
+[33ma66b301[m fix: Remove unnecessary setIsProcessing call in InvitePage and update vercel.json rewrites for API handling
+[33md21c3b8[m Revert "Reapply "Reapply "fix: Update vercel.json rewrites for backend routing"""
+[33m00d5fe5[m Reapply "Reapply "fix: Update vercel.json rewrites for backend routing""
+[33m2ebf1f0[m Revert "Reapply "fix: Update vercel.json rewrites for backend routing""
+[33m433c7d3[m Reapply "fix: Update vercel.json rewrites for backend routing"
+[33m584fe26[m Revert "fix: Update vercel.json rewrites for backend routing"
+[33m1665584[m fix: Update vercel.json rewrites for backend routing
+[33m4e9feb1[m feat: Add initial vercel.json configuration for URL rewrites
+[33mda0f311[m Refactor code structure for improved readability and maintainability
+[33mdaa0ff6[m fix: Update favicon links in index.html to include apple-touch-icon and fallback for older browsers
+[33mc82357e[m fix: Remove unused favicon links from index.html
+[33mc5bb44d[m Add new favicon images for the application
+[33mb855815[m fix: Update favicon link to use PNG format with cachebuster
+[33m316cd94[m fix: Update favicon links and simplify theme script in index.html
+[33m9f46f0e[m fix: Update favicon links in index.html to include versioning
+[33m55c3cbd[m Refactor code structure for improved readability and maintainability
+[33mbd14775[m Remove web app manifest and associated icon images
+[33mec91b70[m Refactor code structure for improved readability and maintainability
+[33mdc23d9d[m fix: Correct favicon path in index.html and adjust logo image size in Header component
+[33m6982fe9[m feat: Update page title to 'SplitCalx' and fix logo image path in Header component
+[33m17a6bb2[m fix: Ensure proper module export and add newline at end of file in server.js
+[33mfb8efe6[m feat: Add additional rewrite rule for authentication endpoint to backend service
+[33m14369c2[m feat: Update Vercel configuration to specify backend entrypoint
+[33m92feddd[m feat: Add Vercel configuration for server deployment
+[33mf860b18[m feat: Update API health check endpoint and remove outdated Vercel configuration
+[33m51a8a60[m feat: Update server startup logic for local environment and add Vercel configuration
+[33m9150683[m Refactor project structure and update dependencies
+[33mb637bc7[m feat: Refactor trip deletion confirmation dialog and enhance button styles
+[33m9b5aabd[m feat: Implement expense deletion functionality with confirmation dialog
+[33m3aff459[m feat: Add loading skeletons and initialization state for trips and trip dashboard
+[33md7524ee[m feat: Enhance dynamic scrollbar behavior for debts and expenses lists
+[33m450c2b3[m feat: Implement theme toggle functionality and enhance dark mode support
+[33m8a7d2ba[m added dark mode
+[33mc36ce28[m feat: Enhance member list display with host indicator
+[33m418a17a[m feat: and enhance InvitePage with authentication options
+[33me5e26d1[m Add Footer component with navigation links and social icons
+[33m4325282[m feat: Implement trip deletion functionality and update Dashboard UI for delete confirmation
+[33m698b15e[m feat: Add Header component and adjust layout for Home, Login, and Register pages
+[33m69c88e1[m Refactor: Remove TripsPage component and integrate its functionality into a new Dashboard component
+[33mdeb6459[m initializing the app

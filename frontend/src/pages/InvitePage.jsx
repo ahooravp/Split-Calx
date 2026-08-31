@@ -25,8 +25,7 @@ export default function InvitePage() {
     let isMounted = true;
 
     if (currentUser) {
-      // Notice we REMOVED setIsProcessing(true) here to prevent the cascading re-render!
-
+      
       fetch('/api/trips/join', {
         method: 'POST',
         headers: {
