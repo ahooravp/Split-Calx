@@ -131,11 +131,11 @@ export default function TripDashboard() {
   const handleAddExpense = async (e) => {
     e.preventDefault();
     if (selectedSplits.length === 0) return showToast('Select at least one person.', true);
-    
+
     if (parseFloat(expenseAmount) <= 0) {
       return showToast('Expense amount cannot be zero.', true);
     }
-    
+
     setActiveAction('ADD_EXPENSE');
 
     const amount = parseFloat(expenseAmount);
@@ -491,7 +491,7 @@ export default function TripDashboard() {
                         <span className="font-bold text-slate-800 dark:text-slate-200 text-base transition-colors duration-300 ease-in-out">
                           {exp.description}
                         </span>
-                        <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1 tracking-wider transition-colors duration-300 ease-in-out">
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-400 dark:text-slate-500 mt-1 tracking-wider transition-colors duration-300 ease-in-out">
                           Paid by {exp.payer_name?.toUpperCase()} • {new Date(exp.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
                         </span>
                       </div>

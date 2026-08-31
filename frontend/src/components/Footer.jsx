@@ -10,7 +10,7 @@ export default function Footer() {
             <span className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2 transition-colors duration-300 ease-in-out">
               {/* Added explicit transition to the colored dot so it doesn't snap */}
               <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400 transition-colors duration-300 ease-in-out"></span>
-              ExpenseTracker
+              Split Calx
             </span>
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400 leading-relaxed pr-4 font-medium transition-colors duration-300 ease-in-out">
               Track group trip expenses, calculate precise debts, and settle up without the headache.
